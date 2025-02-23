@@ -35,7 +35,7 @@ for i, (filename, df) in enumerate(control_data.items()):
 
 plt.xlabel("Time (ms)")
 plt.ylabel("Voltage (mV)")
-plt.title("Voltage Traces: Control Group (Time Corrected)")
+plt.title("Voltage Traces: Control Group")
 plt.legend()
 plt.show()
 
@@ -48,7 +48,7 @@ for i, (filename, df) in enumerate(stuttering_data.items()):
 
 plt.xlabel("Time (ms)")
 plt.ylabel("Voltage (mV)")
-plt.title("Voltage Traces: Stuttering Group (Time Corrected)")
+plt.title("Voltage Traces: Stuttering Group")
 plt.legend()
 plt.show()
 
@@ -66,7 +66,7 @@ for i, (filename, df) in enumerate(stuttering_data.items()):
 
 plt.xlabel("Time (ms)")
 plt.ylabel("Voltage (mV)")
-plt.title("Voltage Traces: Control vs Stuttering (Time Corrected)")
+plt.title("Voltage Traces: Control vs Stuttering")
 plt.legend()
 plt.show()
 

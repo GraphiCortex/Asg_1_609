@@ -36,7 +36,7 @@ sns.heatmap(control_matrix, cmap="coolwarm", cbar=True,
 plt.xticks(ticks=np.linspace(0, 6000, num=7), labels=np.linspace(0, 600, num=7, dtype=int))
 plt.xlabel("Time (ms)")
 plt.ylabel("Neurons")
-plt.title("Voltage Heatmap - Control Group (Time Corrected)")
+plt.title("Voltage Heatmap - Control Group")
 plt.show()
 
 # Plot Stuttering Voltage Heatmap 
@@ -48,7 +48,7 @@ sns.heatmap(stuttering_matrix, cmap="coolwarm", cbar=True,
 plt.xticks(ticks=np.linspace(0, 6000, num=7), labels=np.linspace(0, 600, num=7, dtype=int))
 plt.xlabel("Time (ms)")
 plt.ylabel("Neurons")
-plt.title("Voltage Heatmap - Stuttering Group (Time Corrected)")
+plt.title("Voltage Heatmap - Stuttering Group")
 plt.show()
 
 # Select one control and one stuttering dataset for direct comparison
