@@ -38,7 +38,7 @@ def detect_spikes(voltage_trace, threshold=SPIKE_THRESHOLD):
     peaks, properties = find_peaks(voltage_trace, height=threshold)
     return peaks, properties["peak_heights"]
 
-def compute_spike_threshold_refined(voltage_trace, spike_indices, sampling_rate=10, dvdt_threshold=10):
+def compute_spike_threshold(voltage_trace, spike_indices, sampling_rate=10, dvdt_threshold=10):
     """
     Computes the spike threshold as the first point where dV/dt ≥ dvdt_threshold before a spike.
 
@@ -270,34 +270,84 @@ def compute_spike_width(voltage_trace, spike_indices, threshold_values, sampling
 
     return spike_widths
 
-# Updating feature extraction function to include Spike Width
-def extract_spike_features(voltage_trace, sampling_rate=SAMPLING_RATE, dvdt_threshold=10):
+# Function to compute Afterhyperpolarization (AHP) without the last spike
+def compute_ahp_adaptive(voltage_trace, spike_indices):
     """
-    Computes spike frequency, spike threshold, spike amplitude, TTPAP, Delay to First Spike, and Spike Width.
+    Computes Afterhyperpolarization (AHP) values using interspike intervals, 
+    but does NOT compute AHP for the last spike.
+
+    Parameters:
+        voltage_trace (np.array): Voltage values.
+        spike_indices (list): Indices of detected spikes.
 
     Returns:
-        dict: Contains extracted features.
+        ahp_values (list): Minimum voltage between consecutive spikes (AHP). 
+                           The last spike's AHP is set to None.
     """
-    # Detect spikes
+    ahp_values = []
+
+    for i in range(len(spike_indices) - 1):  # Exclude last spike
+        search_start = spike_indices[i]
+        search_end = spike_indices[i + 1]
+
+        # Find the minimum voltage in this range
+        ahp_values.append(np.min(voltage_trace[search_start:search_end]))
+
+    return ahp_values
+
+# Function to compute Time-to-Peak AHP (TTPAHP) correctly from threshold crossing
+def compute_ttpath(voltage_trace, spike_indices, threshold_values, ahp_values, sampling_rate=10):
+    """
+    Computes Time-to-Peak Afterhyperpolarization (TTPAHP) for all spikes that have an AHP value.
+
+    Parameters:
+        voltage_trace (np.array): Voltage values.
+        spike_indices (list): Indices of detected spikes.
+        threshold_values (list): Threshold voltages for each spike.
+        ahp_values (list): AHP voltage values.
+        sampling_rate (int): Sampling rate in kHz (default: 10 kHz).
+
+    Returns:
+        ttpath_values (list): Time (ms) from threshold to AHP minimum, matching AHP count.
+    """
+    ttpath_values = []
+
+    for i in range(len(ahp_values)):  # Ensure we iterate over all AHP values
+        if threshold_values[i] is not None and ahp_values[i] is not None:
+            threshold_idx = None
+
+            # Find threshold crossing before the spike peak
+            for t in range(spike_indices[i], 0, -1):
+                if voltage_trace[t] <= threshold_values[i]:
+                    threshold_idx = t
+                    break
+
+            if threshold_idx is not None:
+                # Find the AHP minimum after threshold crossing (within valid range)
+                search_start = threshold_idx
+                search_end = spike_indices[i+1] if i + 1 < len(spike_indices) else len(voltage_trace) - 1
+                ahp_idx = search_start + np.argmin(voltage_trace[search_start:search_end])
+
+                # Compute TTPAHP as time from threshold to AHP min
+                ttpath_values.append((ahp_idx - threshold_idx) / sampling_rate)
+            else:
+                ttpath_values.append(None)
+        else:
+            ttpath_values.append(None)
+
+    return ttpath_values
+
+# Re-run feature extraction with the corrected TTPAHP function
+def extract_spike_features(voltage_trace, sampling_rate=10, dvdt_threshold=10):
     spike_indices, spike_peaks = detect_spikes(voltage_trace)
-
-    # Compute spike frequency
     spike_frequency = compute_spike_frequency(spike_indices)
-
-    # Compute refined thresholds
-    threshold_values_refined = compute_spike_threshold_refined(voltage_trace, spike_indices, sampling_rate, dvdt_threshold)
-
-    # Compute spike amplitudes
+    threshold_values_refined = compute_spike_threshold(voltage_trace, spike_indices, sampling_rate, dvdt_threshold)
     spike_amplitudes = compute_spike_amplitude(spike_peaks, threshold_values_refined)
-
-    # Compute TTPAP
     ttpap_values = compute_ttpap(voltage_trace, spike_indices, threshold_values_refined, sampling_rate)
-
-    # Compute Delay to First Spike
     delay_to_first_spike = compute_delay_to_first_spike(spike_indices)
-
-    # Compute Spike Width
     spike_widths = compute_spike_width(voltage_trace, spike_indices, threshold_values_refined, sampling_rate)
+    ahp_values = compute_ahp_adaptive(voltage_trace, spike_indices)
+    ttpath_values = compute_ttpath(voltage_trace, spike_indices, threshold_values_refined, ahp_values, sampling_rate)
 
     return {
         "spike_indices": spike_indices,
@@ -307,11 +357,13 @@ def extract_spike_features(voltage_trace, sampling_rate=SAMPLING_RATE, dvdt_thre
         "spike_amplitudes": spike_amplitudes,
         "ttpap_values": ttpap_values,
         "delay_to_first_spike": delay_to_first_spike,
-        "spike_widths": spike_widths
+        "spike_widths": spike_widths,
+        "ahp_values": ahp_values,
+        "ttpahp_values": ttpath_values  
     }
 
 # Select a sample neuron and process it
-test_neuron = list(control_data.values())[1]  # Pick a sample control neuron
+test_neuron = list(stuttering_data.values())[4]  # Pick a sample control neuron
 voltage_trace = test_neuron["Voltage (mV)"].values
 
 # Extract spike features
@@ -324,6 +376,38 @@ print(f"Amplitude Values: {spike_features['spike_amplitudes'][:]}")
 print(f"TTPAP Values: {spike_features['ttpap_values'][:]}")
 print(f"Delay to First Spike: {spike_features['delay_to_first_spike']} ms")
 print(f"Spike Width Values: {spike_features['spike_widths'][:]}")
+print(f"After Hyperpolarization Values: {spike_features['ahp_values'][:]}")
+print(f"TTPAHP values: {spike_features['ttpahp_values'][:]}")
+
 
 # Plot the results
 plot_voltage_trace(voltage_trace, spike_features["spike_indices"], spike_features["threshold_values"])
+
+
+# Function to export spike features for all neurons
+def export_spike_features(data_dict, filename="spike_features.csv"):
+    all_features = []
+    for neuron_name, df in data_dict.items():
+        voltage_trace = df["Voltage (mV)"].values
+        spike_features = extract_spike_features(voltage_trace)
+        num_spikes = len(spike_features["spike_indices"])
+
+        for i in range(num_spikes):
+            all_features.append({
+                "Neuron": neuron_name,
+                "Spike Index": spike_features["spike_indices"][i],
+                "Spike Peak (mV)": spike_features["spike_peaks"][i],
+                "Threshold (mV)": spike_features["threshold_values"][i],
+                "Spike Amplitude (mV)": spike_features["spike_amplitudes"][i],
+                "TTPAP (ms)": spike_features["ttpap_values"][i],
+                "Delay to First Spike (ms)": spike_features["delay_to_first_spike"] if i == 0 else None,
+                "Spike Width (ms)": spike_features["spike_widths"][i],
+                "AHP (mV)": spike_features["ahp_values"][i] if i < len(spike_features["ahp_values"]) else None,
+                "TTPAHP (ms)": spike_features["ttpahp_values"][i] if i < len(spike_features["ttpahp_values"]) else None
+            })
+
+    df_spike_features = pd.DataFrame(all_features)
+    df_spike_features.to_csv(filename, index=False)
+
+# Export features for all neurons
+export_spike_features({**control_data, **stuttering_data})  
