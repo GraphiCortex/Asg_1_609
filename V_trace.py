@@ -29,7 +29,7 @@ time_axis = np.arange(6000) / 10  # Since each sample is 0.1 ms
 # Plot Control samples 
 plt.figure(figsize=(12, 6))
 for i, (filename, df) in enumerate(control_data.items()):
-    if i >= 5:  # Limit to first 2 for visualization
+    if i >= 2:  # Limit to first 2 for visualization
         break
     plt.plot(time_axis, df["Voltage (mV)"], label=f"Control {filename}")
 
