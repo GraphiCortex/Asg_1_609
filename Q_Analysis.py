@@ -363,7 +363,7 @@ def extract_spike_features(voltage_trace, sampling_rate=10, dvdt_threshold=10):
     }
 
 # Select a sample neuron and process it
-test_neuron = list(stuttering_data.values())[4]  # Pick a sample control neuron
+test_neuron = list(control_data.values())[3]  # Pick a sample control neuron
 voltage_trace = test_neuron["Voltage (mV)"].values
 
 # Extract spike features
