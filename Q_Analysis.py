@@ -157,50 +157,6 @@ def compute_ttpap(voltage_trace, spike_indices, threshold_values, sampling_rate=
 
     return ttpap_values
 
-###############################################
-# Function to compute Time-to-Peak Action Potential (TTPAP) with debug output
-# def compute_ttpap_debug(spike_indices, threshold_values, voltage_trace, sampling_rate=SAMPLING_RATE):
-#     """
-#     Computes time-to-peak action potential (TTPAP) for each detected spike with debugging.
-
-#     Returns:
-#         ttpap_values (list): Time (ms) from threshold to peak for each spike.
-#     """
-#     ttpap_values = []
-    
-#     for i, (spike_idx, threshold) in enumerate(zip(spike_indices, threshold_values)):
-#         if threshold is not None:
-#             # Find threshold crossing index
-#             threshold_idx = np.where(voltage_trace[:spike_idx] <= threshold)[0]
-#             if len(threshold_idx) > 0:
-#                 threshold_idx = threshold_idx[-1]  # Last occurrence before peak
-
-#                 # Compute time difference in milliseconds
-#                 ttpap = (spike_idx - threshold_idx) / sampling_rate
-#                 ttpap_values.append(ttpap)
-
-#                 # Print debug values for the first few spikes
-#                 if i < 5:
-#                     print(f"Spike {i+1}:")
-#                     print(f"  - Threshold Index: {threshold_idx}")
-#                     print(f"  - Spike Peak Index: {spike_idx}")
-#                     print(f"  - Computed TTPAP: {ttpap} ms")
-#                     print("-" * 40)
-#             else:
-#                 ttpap_values.append(None)
-#         else:
-#             ttpap_values.append(None)
-
-#     return ttpap_values
-
-# # Compute TTPAP with debugging
-# spike_features["ttpap_values"] = compute_ttpap_debug(
-#     spike_features["spike_indices"],
-#     spike_features["threshold_values"],
-#     voltage_trace
-# )
-###############################################
-
 # Function to compute Delay to First Spike (DTFS)
 def compute_delay_to_first_spike(spike_indices, stimulus_start_idx=2000, sampling_rate=SAMPLING_RATE):
     """
