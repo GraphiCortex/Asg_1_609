@@ -9,7 +9,7 @@ We computed the neural data into visual representations according to the spike f
 
 ## For part b:
 
-We computed the process of voltage traces, threshold, amplitude, time-to-peak action potential (TTP_AP), delay to first spike, spike width, after-hyperpolarization (AHP), and time-to-peak AHP (TTP_AHP). 
+We computed the process of voltage traces, threshold, amplitude, time-to-peak action potential (TTPAP), delay to first spike, spike width, after-hyperpolarization (AHP), and time-to-peak AHP (TTPAHP). 
 These provide comparative analysis for both groups and help us analyze different dynamics.
 
  
