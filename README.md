@@ -13,13 +13,13 @@ We computed the process of voltage traces, threshold, amplitude, time-to-peak ac
 These provide comparative analysis for both groups and help us analyze different dynamics.
 
  
-## For part c
+## For part c:
 
 Read and preprocess voltage traces – Detecting action potentials and extracting key spike features listed before.
 
 We also performed T-tests and Mann-Whitney U test for both groups, and we visualized via spike traces; boxplots and violin plots.
 
 
-## For part d
+## For part d:
 
 We computed spike metrics and phase plots(V vs dv/dt) and reveal differences in spike trajectories, with a higher clustered trajectories while stuttering neurons exhibit greater variability. The script also explores acceleration phase plots (V vs d²V/dt²) to assess spike onset dynamics. These analyses provide insights into potential ion channel dysfunctions or network-level alterations underlying stuttering.
