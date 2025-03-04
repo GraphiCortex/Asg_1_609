@@ -399,6 +399,7 @@ def export_spike_features(data_dict, filename="spike_features.csv"):
                 "Spike Peak (mV)": spike_features["spike_peaks"][i],
                 "Threshold (mV)": spike_features["threshold_values"][i],
                 "Spike Amplitude (mV)": spike_features["spike_amplitudes"][i],
+                "Spike Frequency (Hz)": spike_features["spike_frequency"],  
                 "TTPAP (ms)": spike_features["ttpap_values"][i],
                 "Delay to First Spike (ms)": spike_features["delay_to_first_spike"] if i == 0 else None,
                 "Spike Width (ms)": spike_features["spike_widths"][i],
