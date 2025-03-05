@@ -4,7 +4,7 @@ In these seperate files we coded according to each individual section a,b,c,d,e 
 We computed the neural data into visual representations according to the spike features listed.
 
 ## For part a: 
- we coded a direct plotting visualization for the 2 groups (stuttering vs control). With emphasis on identifying variables such as spike frequency, amplitude and shapelike features. All these are plotted to visualize the differnces between the two groups.
+We coded a direct plotting visualization for the 2 groups (stuttering vs control). With emphasis on identifying variables such as spike frequency, amplitude and shapelike features. All these are plotted to visualize the differnces between the two groups.
 
 
 ## For part b:

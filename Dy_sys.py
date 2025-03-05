@@ -13,8 +13,8 @@ stuttering_files = ["Data/Stuttering/N1_ST.txt", "Data/Stuttering/N2_ST.txt", "D
 # Function to load voltage data
 def load_voltage_data(file_path):
     data = np.loadtxt(file_path)
-    time = np.arange(len(data)) * 0.1  # Assuming a 10 kHz sampling rate (0.1 ms per step)
-    voltage = data[:, 1]  # Second column contains voltage
+    time = np.arange(len(data)) * 0.1  
+    voltage = data[:, 1] 
     return time, voltage
 
 # Compute dV/dt for phase plot
@@ -59,10 +59,8 @@ def analyze_phase_trajectory(files):
         time, voltage = load_voltage_data(file)
         dv_dt = compute_dv_dt(time, voltage)
         
-        # Compute peak dV/dt (max absolute value)
         peak_dv_dt.append(np.max(np.abs(dv_dt)))
-        
-        # Compute loop width (difference between max and min voltage in the loop)
+
         loop_widths.append(np.max(voltage) - np.min(voltage))
     
     return np.array(peak_dv_dt), np.array(loop_widths)
@@ -115,12 +113,10 @@ def compute_avg_trajectory(files):
         voltage_list.append(voltage)
         dv_dt_list.append(dv_dt)
     
-    # Interpolate to ensure all trajectories have the same length for averaging
     min_length = min(len(v) for v in voltage_list)
     voltage_matrix = np.array([v[:min_length] for v in voltage_list])
     dv_dt_matrix = np.array([d[:min_length] for d in dv_dt_list])
     
-    # Compute mean and standard deviation
     avg_voltage = np.mean(voltage_matrix, axis=0)
     avg_dv_dt = np.mean(dv_dt_matrix, axis=0)
     std_dv_dt = np.std(dv_dt_matrix, axis=0)
@@ -157,8 +153,8 @@ plt.show()
 
 # Compute d²V/dt² for acceleration phase plot
 def compute_d2v_dt2(time, voltage):
-    dv_dt = compute_dv_dt(time, voltage)  # First derivative
-    d2v_dt2 = np.gradient(dv_dt, time)  # Second derivative
+    dv_dt = compute_dv_dt(time, voltage)  
+    d2v_dt2 = np.gradient(dv_dt, time)  
     return d2v_dt2
 
 # Function to compute the average trajectory and variability for acceleration phase plots
@@ -172,12 +168,10 @@ def compute_avg_acceleration_trajectory(files):
         voltage_list.append(voltage)
         d2v_dt2_list.append(d2v_dt2)
     
-    # Interpolate to ensure all trajectories have the same length for averaging
     min_length = min(len(v) for v in voltage_list)
     voltage_matrix = np.array([v[:min_length] for v in voltage_list])
     d2v_dt2_matrix = np.array([d[:min_length] for d in d2v_dt2_list])
     
-    # Compute mean and standard deviation
     avg_voltage = np.mean(voltage_matrix, axis=0)
     avg_d2v_dt2 = np.mean(d2v_dt2_matrix, axis=0)
     std_d2v_dt2 = np.std(d2v_dt2_matrix, axis=0)

@@ -14,11 +14,9 @@ def analyze_feature(feature):
     control_data = spike_features[spike_features["Group"] == "Control"][feature].dropna()
     stuttering_data = spike_features[spike_features["Group"] == "Stuttering"][feature].dropna()
 
-    # Perform statistical tests
     t_stat, t_pval = ttest_ind(control_data, stuttering_data, equal_var=False)  # Welch's t-test
     u_stat, u_pval = mannwhitneyu(control_data, stuttering_data, alternative="two-sided")
 
-    # Store statistical results
     stats_df = pd.DataFrame({
         "Feature": [feature],
         "T-Test Statistic": [t_stat],

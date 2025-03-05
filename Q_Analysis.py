@@ -48,19 +48,17 @@ def compute_spike_threshold(voltage_trace, spike_indices, sampling_rate=10, dvdt
     threshold_values = []
     dvdt = np.zeros_like(voltage_trace)
     
-    # Compute dV/dt using central difference method
     dvdt[1:-1] = (voltage_trace[2:] - voltage_trace[:-2]) / (2 * (1 / sampling_rate))
 
     for idx in spike_indices:
-        search_range = min(30, idx)  # Limit search window
+        search_range = min(30, idx)  
         pre_spike_idx = idx - search_range
 
         while pre_spike_idx > 0 and dvdt[pre_spike_idx] < dvdt_threshold:
-            pre_spike_idx += 1  # Move forward to find first valid dV/dt
+            pre_spike_idx += 1  
 
-        # Ensure we did not exit too early
         if pre_spike_idx >= idx - 5:
-            pre_spike_idx = idx - 10  # Default backup if threshold search fails
+            pre_spike_idx = idx - 10  
 
         threshold_values.append(voltage_trace[pre_spike_idx])
 
@@ -83,7 +81,6 @@ def plot_voltage_trace(voltage_trace, spike_indices, threshold_values):
     plt.figure(figsize=(12, 6))
     plt.plot(voltage_trace, label="Voltage Trace", color="black", alpha=0.6)
 
-    # Mark detected thresholds
     threshold_indices = [spike_indices[i] for i in range(len(spike_indices)) if threshold_values[i] is not None]
     threshold_voltages = [threshold_values[i] for i in range(len(spike_indices)) if threshold_values[i] is not None]
 
@@ -95,7 +92,6 @@ def plot_voltage_trace(voltage_trace, spike_indices, threshold_values):
     plt.title("Voltage Trace with Detected Thresholds")
     plt.legend()
     
-    # Ensure the plot displays properly on your system
     plt.show(block=True)
 
 
@@ -113,13 +109,12 @@ def compute_spike_amplitude(spike_peaks, threshold_values):
     """
     amplitudes = []
     for peak, threshold in zip(spike_peaks, threshold_values):
-        if threshold is not None:  # Ensure valid threshold values
+        if threshold is not None:  
             amplitudes.append(peak - threshold)
         else:
-            amplitudes.append(None)  # If threshold was not detected properly
+            amplitudes.append(None)  
 
     return amplitudes
-
 
 # Function to compute Time-to-Peak Action Potential (TTPAP)
 def compute_ttpap(voltage_trace, spike_indices, threshold_values, sampling_rate=SAMPLING_RATE):
@@ -139,7 +134,6 @@ def compute_ttpap(voltage_trace, spike_indices, threshold_values, sampling_rate=
 
     for spike_idx, threshold in zip(spike_indices, threshold_values):
         if threshold is not None:
-            # Find the first threshold crossing *before* the spike peak
             threshold_idx = None
             for i in range(spike_idx, 0, -1):  # Scan backwards from spike peak
                 if voltage_trace[i] <= threshold:
@@ -147,7 +141,6 @@ def compute_ttpap(voltage_trace, spike_indices, threshold_values, sampling_rate=
                     break
 
             if threshold_idx is not None:
-                # Compute TTPAP as the time from threshold to peak
                 ttpap = (spike_idx - threshold_idx) / sampling_rate
                 ttpap_values.append(ttpap)
             else:
@@ -171,14 +164,14 @@ def compute_delay_to_first_spike(spike_indices, stimulus_start_idx=2000, samplin
         float: Time (ms) to first spike or None if no spike detected.
     """
     if len(spike_indices) == 0:
-        return None  # No spikes detected
+        return None  
 
-    first_spike_idx = spike_indices[0]  # Get first spike occurrence
+    first_spike_idx = spike_indices[0] 
 
     if first_spike_idx >= stimulus_start_idx:
-        return (first_spike_idx - stimulus_start_idx) / sampling_rate  # Convert to ms
+        return (first_spike_idx - stimulus_start_idx) / sampling_rate  
     else:
-        return None  # Spike occurred before stimulus start (unexpected case)
+        return None  
 
 # Function to compute Spike Width at Half-Max Amplitude
 def compute_spike_width(voltage_trace, spike_indices, threshold_values, sampling_rate=SAMPLING_RATE):
@@ -198,29 +191,26 @@ def compute_spike_width(voltage_trace, spike_indices, threshold_values, sampling
 
     for spike_idx, threshold in zip(spike_indices, threshold_values):
         if threshold is not None:
-            peak_voltage = voltage_trace[spike_idx]  # Get the peak voltage
-            half_max = (peak_voltage + threshold) / 2  # Compute half-max amplitude
+            peak_voltage = voltage_trace[spike_idx]  
+            half_max = (peak_voltage + threshold) / 2  
 
-            # Find the first crossing (upstroke) before the peak
             left_idx = None
             for i in range(spike_idx, 0, -1):
                 if voltage_trace[i] <= half_max:
                     left_idx = i
                     break
 
-            # Find the second crossing (downstroke) after the peak
             right_idx = None
             for i in range(spike_idx, len(voltage_trace)):
                 if voltage_trace[i] <= half_max:
                     right_idx = i
                     break
 
-            # Compute spike width if valid indices are found
             if left_idx is not None and right_idx is not None:
-                spike_width = (right_idx - left_idx) / sampling_rate  # Convert to ms
+                spike_width = (right_idx - left_idx) / sampling_rate 
                 spike_widths.append(spike_width)
             else:
-                spike_widths.append(None)  # If invalid, store None
+                spike_widths.append(None)  
         else:
             spike_widths.append(None)
 
@@ -242,11 +232,10 @@ def compute_ahp_adaptive(voltage_trace, spike_indices):
     """
     ahp_values = []
 
-    for i in range(len(spike_indices) - 1):  # Exclude last spike
+    for i in range(len(spike_indices) - 1):  
         search_start = spike_indices[i]
         search_end = spike_indices[i + 1]
 
-        # Find the minimum voltage in this range
         ahp_values.append(np.min(voltage_trace[search_start:search_end]))
 
     return ahp_values
@@ -272,19 +261,16 @@ def compute_ttpath(voltage_trace, spike_indices, threshold_values, ahp_values, s
         if threshold_values[i] is not None and ahp_values[i] is not None:
             threshold_idx = None
 
-            # Find threshold crossing before the spike peak
             for t in range(spike_indices[i], 0, -1):
                 if voltage_trace[t] <= threshold_values[i]:
                     threshold_idx = t
                     break
 
             if threshold_idx is not None:
-                # Find the AHP minimum after threshold crossing (within valid range)
                 search_start = threshold_idx
                 search_end = spike_indices[i+1] if i + 1 < len(spike_indices) else len(voltage_trace) - 1
                 ahp_idx = search_start + np.argmin(voltage_trace[search_start:search_end])
 
-                # Compute TTPAHP as time from threshold to AHP min
                 ttpath_values.append((ahp_idx - threshold_idx) / sampling_rate)
             else:
                 ttpath_values.append(None)
